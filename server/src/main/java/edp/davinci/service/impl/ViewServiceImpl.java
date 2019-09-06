@@ -503,8 +503,8 @@ public class ViewServiceImpl implements ViewService {
             }
             st.add("orders", executeParam.getOrders(source.getJdbcUrl()));
             st.add("filters", executeParam.getFilters());
-            st.add("keywordPrefix", sqlUtils.getKeywordPrefix(source.getJdbcUrl()));
-            st.add("keywordSuffix", sqlUtils.getKeywordSuffix(source.getJdbcUrl()));
+            st.add("keywordPrefix", SqlUtils.getKeywordPrefix(source.getJdbcUrl()));
+            st.add("keywordSuffix", SqlUtils.getKeywordSuffix(source.getJdbcUrl()));
 
             for (int i = 0; i < querySqlList.size(); i++) {
                 st.add("sql", querySqlList.get(i));
