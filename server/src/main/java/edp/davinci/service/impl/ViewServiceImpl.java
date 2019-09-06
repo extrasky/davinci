@@ -439,7 +439,7 @@ public class ViewServiceImpl implements ViewService {
                     }
                     if (!CollectionUtils.isEmpty(querySqlList)) {
                         for (String sql : querySqlList) {
-                            paginateWithQueryColumns = sqlUtils.syncQuery4Paginate(sql, null, null, null, executeSql.getLimit(), null);
+                            paginateWithQueryColumns = sqlUtils.syncQuery4Paginate(sql, null, null, null, executeSql.getLimit(), null, null);
                         }
                     }
                 }
@@ -512,6 +512,30 @@ public class ViewServiceImpl implements ViewService {
             }
 
         }
+    }
+
+    public String buildQuerySql(String sql, Source source, ViewExecuteParam executeParam){
+        if (null != executeParam) {
+            //构造参数， 原有的被传入的替换
+            STGroup stg = new STGroupFile(Constants.SQL_TEMPLATE);
+            ST st = stg.getInstanceOf("querySql");
+            st.add("nativeQuery", executeParam.isNativeQuery());
+            st.add("groups", executeParam.getGroups());
+
+            if (executeParam.isNativeQuery()) {
+                st.add("aggregators", executeParam.getAggregators());
+            } else {
+                st.add("aggregators", executeParam.getAggregators(source.getJdbcUrl()));
+            }
+            st.add("orders", executeParam.getOrders(source.getJdbcUrl()));
+            st.add("filters", executeParam.getFilters());
+            st.add("keywordPrefix", SqlUtils.getKeywordPrefix(source.getJdbcUrl()));
+            st.add("keywordSuffix", SqlUtils.getKeywordSuffix(source.getJdbcUrl()));
+            st.add("sql", sql);
+            return st.render();
+
+        }
+        return sql;
     }
 
 
@@ -598,7 +622,7 @@ public class ViewServiceImpl implements ViewService {
                                 executeParam.getPageSize(),
                                 executeParam.getTotalCount(),
                                 executeParam.getLimit(),
-                                excludeColumns);
+                                excludeColumns, querySql->buildQuerySql(querySql,source, executeParam));
                     }
                 }
             }

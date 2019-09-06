@@ -27,5 +27,9 @@ public class ViewBaseInfo {
     private String name;
     private String description;
 
+    private String model;
+
+    private String variable;
+    private String config;
     private String sourceName;
 }
