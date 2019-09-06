@@ -586,7 +586,7 @@ public class ViewServiceImpl implements ViewService {
 
                 List<String> querySqlList = sqlParseUtils.getSqls(srcSql, true);
                 if (!CollectionUtils.isEmpty(querySqlList)) {
-                    buildQuerySql(querySqlList, source, executeParam);
+//                    buildQuerySql(querySqlList, source, executeParam);
                     executeParam.addExcludeColumn(excludeColumns, source.getJdbcUrl());
 
                     if (null != executeParam
