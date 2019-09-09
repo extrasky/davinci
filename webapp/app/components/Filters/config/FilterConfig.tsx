@@ -34,7 +34,6 @@ import {
 } from '..'
 import { FilterTypes, IS_RANGE_TYPE} from '../filterTypes'
 import { globalControlMigrationRecorder } from 'app/utils/migrationRecorders'
-
 import FilterList from './FilterList'
 import FilterFormWithRedux, { FilterForm } from './FilterForm'
 import OptionSettingFormWithModal, { OptionSettingForm } from './OptionSettingForm'
@@ -46,6 +45,7 @@ import { ICurrentDashboard } from '../../../containers/Dashboard'
 import { setControlFormValues } from '../../../containers/Dashboard/actions'
 import { IViewVariable, IFormedViews, IFormedView, IViewModelProps } from 'app/containers/View/types'
 import { GlobalControlQueryMode } from '../types'
+import {number} from "prop-types";
 const RadioGroup = Radio.Group
 const RadioButton = Radio.Button
 
@@ -86,6 +86,7 @@ interface IGlobalControlConfigStates {
   optionModalVisible: boolean,
   optionValues: string
   queryMode: GlobalControlQueryMode
+  selectID:number
 }
 
 export class GlobalControlConfig extends React.Component<IGlobalControlConfigProps, IGlobalControlConfigStates> {
@@ -99,7 +100,8 @@ export class GlobalControlConfig extends React.Component<IGlobalControlConfigPro
       viewSelectorSource: [],
       optionModalVisible: false,
       optionValues: '',
-      queryMode: GlobalControlQueryMode.Immediately
+      queryMode: GlobalControlQueryMode.Immediately,
+      selectID:number
     }
   }
 
@@ -144,7 +146,9 @@ export class GlobalControlConfig extends React.Component<IGlobalControlConfigPro
       }
     }
   }
-
+  private setViewId(viewId) {
+     this.state.selectID = viewId;
+  }
   private setRelatedInfo = (control: IGlobalControl, items, widgets, views: IFormedViews) => {
     if (control) {
       const { relatedItems } = control
@@ -337,6 +341,7 @@ export class GlobalControlConfig extends React.Component<IGlobalControlConfigPro
 
       const { key, defaultValue } = values
       const cachedControls = controls.map((c) => {
+        console.log(this.props,'props')
         if (c.key === key) {
           return {
             ...c,
@@ -345,13 +350,14 @@ export class GlobalControlConfig extends React.Component<IGlobalControlConfigPro
             defaultValue: serializeDefaultValue(values, defaultValue),
             relatedItems: itemSelectorSource.reduce((obj, source) => {
               obj[source.id] = {
-                viewId: source.viewId,
+                //需要替换的
+                viewId: this.state.selectID,
                 checked: source.checked
               }
               return obj
             }, {}),
             relatedViews: viewSelectorSource.reduce((obj, source) => {
-              obj[source.id] = source.fields
+              obj[this.state.selectID] = source.fields
               return obj
             }, {})
           }
@@ -664,6 +670,7 @@ export class GlobalControlConfig extends React.Component<IGlobalControlConfigPro
               selected && (
                 <>
                   <RelatedInfoSelectors
+                    prarentComponent={this}
                     itemSelectorSource={itemSelectorSource}
                     viewSelectorSource={viewSelectorSource}
                     interactionType={selected.interactionType}

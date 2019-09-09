@@ -46,5 +46,7 @@ export default {
   roles: `${host}/roles`,
   portal: `${host}/dashboardPortals`,
   star: `${host}/star`,
-  download: `${host}/download`
+  download: `${host}/download`,
+  // 2019.9.2 改变从全局控制器配置中的从字段取值接口
+  changeParamValue:`${host}/changeParamValue`
 }

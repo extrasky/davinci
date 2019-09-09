@@ -310,4 +310,14 @@ export default function* rootGroupSaga (): IterableIterator<any> {
     takeEvery(INITIATE_DOWNLOAD_TASK, initiateDownloadTask)
   ])
 }
+/***9.4号新增的改变司机端从字段取值的接口***/
+export function* getFieldHotel (action): IterableIterator<any> {
+  const { id } = action.payload
+  try {
+    location.href = `${api.changeParamValue}/record/file/${id}/${getToken()}`
+  } catch (err) {
+    yield put(downloadFileFail(err))
+    errorHandler(err)
+  }
+}
 

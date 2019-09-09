@@ -9,7 +9,11 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 
 module.exports = require('./webpack.base.babel')({
   mode: 'production',
-
+ //热更新
+  devServer: {
+    hot: true,
+    // ...
+  },
   // In production, we skip all hot-reloading stuff
   entry: {
     app: [
@@ -51,7 +55,7 @@ module.exports = require('./webpack.base.babel')({
   ],
 
   optimization: {
-    minimize: true,
+    minimize: false,
     minimizer: [
       new TerserPlugin({
         terserOptions: {
@@ -152,6 +156,8 @@ module.exports = require('./webpack.base.babel')({
     }),
 
     new CaseSensitivePathsPlugin(),
+    //引入热更新 8.30
+    webpack.HotModuleReplacementPlugin(),
 
     new BundleAnalyzerPlugin({
       analyzerMode: 'server',

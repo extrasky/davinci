@@ -27,6 +27,10 @@ import { CheckboxChangeEvent } from 'antd/lib/checkbox'
 import { IRelatedItemSource, IRelatedViewSource } from './FilterConfig'
 import { IViewModelProps } from 'app/containers/View/types'
 import FilterTypes from '../filterTypes'
+// 9.4号为了写接口取数值
+import axios, { AxiosRequestConfig, AxiosResponse, AxiosPromise } from 'axios'
+import {distinctValueLoaded} from "containers/Bizlogic/actions";
+import {number} from "prop-types";
 
 const FormItem = Form.Item
 const Option = Select.Option
@@ -41,23 +45,69 @@ interface IRelatedInfoSelectorsProps {
   controlType: FilterTypes
   onItemCheck: (id: number) => () => void
   onModelOrVariableSelect: (id: number) => (value: string | string[]) => void
-  onOptionsFromColumnCheck: (id: number) => (e: CheckboxChangeEvent) => void
-  onOptionsFromColumnSelect: (id: number) => (value: string) => void
+  onOptionsFromColumnCheck: (id: number) => (e: CheckboxChangeEvent) =>void
+  onOptionsFromColumnSelect: (id: number) => (value: string) =>void
   onToggleCheckAll: () => void
   onInteractionTypeChange: (e: RadioChangeEvent) => void
 }
 
 interface IRelatedInfoSelectorsStates {
   modelItems: IViewModelProps[]
+  dataArr:{}
+  selectSee;''
+  //视图列表
+  seeList:[]
+  //视图id
+  seeId:number
 }
 
 export class RelatedInfoSelectors extends PureComponent<IRelatedInfoSelectorsProps, IRelatedInfoSelectorsStates> {
-
   constructor (props) {
     super(props)
     this.state = {
-      modelItems: []
+      modelItems: [],
+      dataArr:{},
+      selectSee:''||'请选择',
+      seeList:[],
+      seeId:number
     }
+  }
+
+  componentDidMount(){
+    axios.get("http://localhost:5002/api/v3/views?projectId=2")
+      .then((res)=>{
+        this.state.seeList=res.data.payload;
+        //拿到我们想要渲染的数据(res)
+         this.setState({
+           seeList:{...this.state.seeList}
+         })
+      })
+  }
+
+ //视图与取值字段联动
+    onOptionsFromColumnSelectGet(el,v){
+       this.setState({
+       selectSee:el
+     })
+
+     axios.get("http://localhost:5002/api/v3/views?projectId=2")
+      .then((res)=>{
+       let dataArr=res.data.payload;
+
+        //拿到我们想要渲染的数据(res)
+      dataArr.forEach((item) =>{
+          if(item.name==el){
+            this.props.prarentComponent.setViewId(item.id);
+            this.setState({
+              seeId:item.id
+            })
+            this.state.dataArr = JSON.parse(item.model);
+          }
+        });
+        this.setState({
+            dataArr: {...this.state.dataArr}
+        });
+      })
   }
 
   public render () {
@@ -68,10 +118,10 @@ export class RelatedInfoSelectors extends PureComponent<IRelatedInfoSelectorsPro
       controlType,
       onItemCheck,
       onModelOrVariableSelect,
-      onOptionsFromColumnCheck,
       onOptionsFromColumnSelect,
+      onOptionsFromColumnCheck,
       onToggleCheckAll,
-      onInteractionTypeChange
+      onInteractionTypeChange,
     } = this.props
     const checkAll = itemSelectorSource.every((i) => i.checked)
 
@@ -86,12 +136,12 @@ export class RelatedInfoSelectors extends PureComponent<IRelatedInfoSelectorsPro
           onChange={onItemCheck(item.id)}
         >
           {item.name}
+
         </Checkbox>
       </li>
     ))
 
     let viewVariableSelects = []
-
     viewSelectorSource.forEach((v) => {
       let value
       let isMultiple
@@ -109,13 +159,12 @@ export class RelatedInfoSelectors extends PureComponent<IRelatedInfoSelectorsPro
           column = v.fields.column
         }
       }
-
       const optionsFromColumnFormItemProps = optionsFromColumn && {
         labelCol: { span: 10 },
         wrapperCol: { span: 14 }
       }
-
       viewVariableSelects = viewVariableSelects.concat(
+
         <div key={v.id}>
           <h4 className={classnames({[styles.variableSelect]: variableSelect})}>
             {v.name}
@@ -124,10 +173,12 @@ export class RelatedInfoSelectors extends PureComponent<IRelatedInfoSelectorsPro
                 <Checkbox
                   className={styles.checkbox}
                   checked={optionsFromColumn}
-                  onChange={onOptionsFromColumnCheck(v.id)}
+                   // onClick={this.onOptionsFromColumnCheckTest.bind(this,v.id)}
+                   onChange={onOptionsFromColumnCheck(v.id)}
                 >
                   从字段取值
                 </Checkbox>
+
               )
             }
           </h4>
@@ -176,6 +227,30 @@ export class RelatedInfoSelectors extends PureComponent<IRelatedInfoSelectorsPro
                 <Col span={24}>
                   <FormItem
                     className={styles.formItem}
+                    {...optionsFromColumn && { label: '视图' }}
+                    {...optionsFromColumnFormItemProps}
+                  >
+                    <Select
+                      id="seeTu"
+                      size="small"
+                      placeholder="请选择"
+                      className={styles.selector}
+                        value={this.state.selectSee}
+                      onChange={(e)=>this.onOptionsFromColumnSelectGet(e,v)}
+                      dropdownMatchSelectWidth={false}
+                    >
+                      {
+                        Object.keys(this.state.seeList).map((key) =>
+                          <Option key={this.state.seeList[key].id} value={this.state.seeList[key].name}>{this.state.seeList[key].name}</Option>
+                        )
+                      }
+
+                    </Select>
+
+                  </FormItem>
+
+                  <FormItem
+                    className={styles.formItem}
                     {...optionsFromColumn && { label: '取值字段' }}
                     {...optionsFromColumnFormItemProps}
                   >
@@ -183,14 +258,14 @@ export class RelatedInfoSelectors extends PureComponent<IRelatedInfoSelectorsPro
                       size="small"
                       placeholder="请选择"
                       className={styles.selector}
-                      value={column}
-                      onChange={onOptionsFromColumnSelect(v.id)}
+
+                       onChange={onOptionsFromColumnSelect(v.id)}
                       dropdownMatchSelectWidth={false}
                     >
                       {
-                        v.model.map((m: IViewModelProps) => (
-                          <Option key={m.name} value={m.name}>{m.name}</Option>
-                        ))
+                        Object.keys(this.state.dataArr).map((key) =>
+                          <Option key={key} value={key}>{key}</Option>
+                        )
                       }
                     </Select>
                   </FormItem>
@@ -217,6 +292,7 @@ export class RelatedInfoSelectors extends PureComponent<IRelatedInfoSelectorsPro
         <div className={styles.title}>
           <h2>关联图表</h2>
           <Checkbox
+            selectId={this.state.seeId}
             className={styles.checkAll}
             checked={checkAll}
             onChange={onToggleCheckAll}
@@ -251,5 +327,4 @@ export class RelatedInfoSelectors extends PureComponent<IRelatedInfoSelectorsPro
     )
   }
 }
-
 export default RelatedInfoSelectors

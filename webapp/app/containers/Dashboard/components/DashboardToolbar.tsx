@@ -24,11 +24,18 @@ interface IDashboardToolbarProps {
   onChangeDashboardAuthorize: (authorized: boolean) => () => void
   onLoadDashboardShareLink: (id: number, authName: string) => void
   onToggleLinkageVisibility: (visible: boolean) => () => void
-  onToggleGlobalFilterVisibility: (visible: boolean) => () => void
+  onToggleGlobalFilterVisibility: (visible: boolean)=>()=>{}
+
+
   onDownloadDashboard: () => void
 }
 
 export class DashboardToolbar extends React.PureComponent<IDashboardToolbarProps> {
+  // 重写方法
+  onToggleGlobalFilterVisibility=()=>{
+    console.log('操蛋的很');
+    alert('say hi')
+  }
 
   public render () {
     const { currentDashboard } = this.props
