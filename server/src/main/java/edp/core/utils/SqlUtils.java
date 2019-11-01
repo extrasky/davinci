@@ -187,7 +187,7 @@ public class SqlUtils {
         JdbcTemplate jdbcTemplate = jdbcTemplate();
         jdbcTemplate.setMaxRows(resultLimit);
 
-        if (pageNo < 1 && pageSize < 1) {
+        if (pageNo < 1 || pageSize < 1) {
             //sql参数组装
             final String fSql = sql;
             if(postRender !=null){
