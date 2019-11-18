@@ -51,6 +51,7 @@ import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -131,7 +132,8 @@ public class SqlUtils {
     }
 
     @Cacheable(value = "query", keyGenerator = "keyGenerator", sync = true)
-    public PaginateWithQueryColumns syncQuery4Paginate(String sql, Integer pageNo, Integer pageSize, Integer totalCount, Integer limit, Set<String> excludeColumns) throws Exception {
+    public PaginateWithQueryColumns syncQuery4Paginate(String sql, Integer pageNo, Integer pageSize, Integer totalCount,
+                                                       Integer limit, Set<String> excludeColumns, Function<String, String> postRender) throws Exception {
         if (null == pageNo) {
             pageNo = -1;
         }
@@ -146,7 +148,7 @@ public class SqlUtils {
             limit = -1;
         }
 
-        PaginateWithQueryColumns paginate = query4Paginate(sql, pageNo, pageSize, totalCount, limit, excludeColumns);
+        PaginateWithQueryColumns paginate = query4Paginate(sql, pageNo, pageSize, totalCount, limit, excludeColumns, postRender);
         return paginate;
     }
 
@@ -173,7 +175,7 @@ public class SqlUtils {
     }
 
     @CachePut(value = "query", keyGenerator = "keyGenerator")
-    public PaginateWithQueryColumns query4Paginate(String sql, int pageNo, int pageSize, int totalCount, int limit, Set<String> excludeColumns) throws Exception {
+    public PaginateWithQueryColumns query4Paginate(String sql, int pageNo, int pageSize, int totalCount, int limit, Set<String> excludeColumns, Function<String, String> postRender) throws Exception {
         PaginateWithQueryColumns paginateWithQueryColumns = new PaginateWithQueryColumns();
         sql = filterAnnotate(sql);
         checkSensitiveSql(sql);
@@ -185,8 +187,12 @@ public class SqlUtils {
         JdbcTemplate jdbcTemplate = jdbcTemplate();
         jdbcTemplate.setMaxRows(resultLimit);
 
-        if (pageNo < 1 && pageSize < 1) {
-
+        if (pageNo < 1 || pageSize < 1) {
+            //sql参数组装
+            final String fSql = sql;
+            if(postRender !=null){
+                sql  = postRender.apply(fSql);
+            }
             if (limit > 0) {
                 resultLimit = limit > resultLimit ? resultLimit : limit;
             }
@@ -220,6 +226,11 @@ public class SqlUtils {
             switch (this.dataTypeEnum) {
                 case MYSQL:
                     sql = sql + " LIMIT " + startRow + ", " + pageSize;
+                    //sql 添加分页后参数组装
+                    final String fSql = sql;
+                    if(postRender !=null){
+                        sql  = postRender.apply(fSql);
+                    }
                     md5 = MD5Util.getMD5(sql, true, 16);
                     if (isQueryLogEnable) {
                         sqlLogger.info("{}  >> \n{}", md5, sql);

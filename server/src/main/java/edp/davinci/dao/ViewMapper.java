@@ -102,7 +102,7 @@ public interface ViewMapper {
 
 
     @Select({
-            "select v.id, v.`name`, v.`description`, s.name as 'sourceName'",
+            "select v.id, v.`name`, v.model, v.variable, v.config, v.`description`, s.name as 'sourceName'",
             "from `view` v ",
             "left join source s on s.id = v.source_id ",
             "where v.project_id = #{projectId}"

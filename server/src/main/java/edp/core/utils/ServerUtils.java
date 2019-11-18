@@ -31,10 +31,10 @@ public class ServerUtils {
     @Value("${server.protocol:http}")
     private String protocol;
 
-    @Value("${server.address}")
+    @Value("${davinci.address}")
     private String address;
 
-    @Value("${server.port}")
+    @Value("${davinci.port}")
     private String port;
 
     @Value("${server.servlet.context-path:}")
